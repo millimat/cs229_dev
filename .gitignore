@@ -1,0 +1,6 @@
+*.graph
+*.pyc
+*.DS_Store
+*~
+#*
+*.bz2
