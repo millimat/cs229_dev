@@ -7,7 +7,7 @@ import csv
 # return (header, X, Y), where header[j] = name of feature j,
 # X[i,j] is value of feature j for example i, and Y[i] is target value
 # for feature i.
-def fetch_data(datafile):
+def fetch_data(datafile, train=True):
     header = None
     data = []
 
@@ -18,7 +18,9 @@ def fetch_data(datafile):
             data.append(row)
 
         data = np.array(data, dtype=np.float64)
-        X = data[:,2:]
+        # train set has labels in column 1; test does not
+        # both models have customer ids in column 0
+        X = data[:,2:] if train else data[:,1:] 
         Y = data[:,1]
         return (header, X, Y)
 
@@ -36,3 +38,7 @@ def gini(actual, pred):
 
 def gini_normalized(actual, pred):
     return gini(actual, pred) / gini(actual, actual)
+
+
+def gini_scorer(estimator, X, y):
+    return gini_normalized(estimator.predict(X), y)
