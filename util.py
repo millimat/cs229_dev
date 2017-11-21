@@ -41,4 +41,4 @@ def gini_normalized(actual, pred):
 
 
 def gini_scorer(estimator, X, y):
-    return gini_normalized(estimator.predict(X), y)
+    return gini_normalized(y, estimator.predict(X))
