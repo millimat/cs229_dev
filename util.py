@@ -46,7 +46,7 @@ def make_prediction(estimator, testfile, outfile, predict_method=None):
     _, ids, X_test, _ = fetch_data(testfile,train=False)
     ids = np.array(ids, dtype=np.int)
     Y_test = (estimator.predict(X_test) if predict_method == None
-              else predict_method(X_test))
+              else predict_method(X_test)) # e.g. model.predict_proba(...)[:,1]
 
     Y_test_normalized = Y_test - np.min(Y_test)
     Y_test_normalized /= np.max(Y_test_normalized)
