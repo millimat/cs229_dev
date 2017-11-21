@@ -1,9 +1,8 @@
-*.graph
-*.pyc
-*.DS_Store
 *~
 #*
-*.bz2
+*.DS_Store
+*.pyc
 *.csv
+*.bz2
 *.7z
 *.buffer
