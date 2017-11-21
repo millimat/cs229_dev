@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sklearn
+from sklearn.metrics import make_scorer
 import csv
 
 # Read data matrix from csv
@@ -20,9 +20,10 @@ def fetch_data(datafile, train=True):
         data = np.array(data, dtype=np.float64)
         # train set has labels in column 1; test does not
         # both models have customer ids in column 0
+        ids = np.array(data[:,0], dtype=np.int)
         X = data[:,2:] if train else data[:,1:] 
-        Y = data[:,1]
-        return (header, X, Y)
+        Y = data[:,1] if train else None
+        return (header, ids, X, Y)
 
 
 def gini(actual, pred):
@@ -39,6 +40,21 @@ def gini(actual, pred):
 def gini_normalized(actual, pred):
     return gini(actual, pred) / gini(actual, actual)
 
+gini_scorer = make_scorer(gini_normalized)
 
-def gini_scorer(estimator, X, y):
-    return gini_normalized(y, estimator.predict(X))
+
+def make_prediction(estimator, testfile, outfile, predict_method=None):
+    _, ids, X_test, _ = fetch_data(testfile,train=False)
+    ids = np.array(ids, dtype=np.int)
+    Y_test = (estimator.predict(X_test) if predict_method == None
+              else predict_method(X_test))
+
+    Y_test_normalized = Y_test - np.min(Y_test)
+    Y_test_normalized /= np.max(Y_test_normalized)
+
+    with open(outfile, 'w') as out:
+        out.write('id,target\n')
+        for i in range(Y_test_normalized.shape[0]):
+            out.write('{},{}\n'.format(ids[i], Y_test_normalized[i]))
+    
+        
