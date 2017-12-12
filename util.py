@@ -56,7 +56,7 @@ def learning_curves(model, Xtrain, Xtest, Ytrain, Ytest, nsteps=20, metric=gini_
         train_results.append(metric(Ytrain[:s], model.predict(Xtrain[:s,:])))
         test_results.append(metric(Ytest, model.predict(Xtest)))
     
-    return train_results, test_results
+    return trainsizes, train_results, test_results
 
 
 def make_prediction(estimator, testfile, outfile, predict_method=None, xgb_estimator=False):
