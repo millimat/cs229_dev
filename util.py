@@ -44,6 +44,20 @@ def gini_normalized(actual, pred):
 gini_scorer = make_scorer(gini_normalized)
 
 
+def learning_curves(model, Xtrain, Xtest, Ytrain, Ytest, nsteps=20, metric=gini_normalized):
+    train_results = []
+    test_results = []
+    
+    trainsizes = [int(x) for x in np.linspace(0,Xtrain.shape[0], nsteps+1)][1:]
+    
+    for s in trainsizes:
+        model.fit(Xtrain[:s,:], Ytrain[:s])
+        train_results.append(metric(Ytrain[:s], model.predict(Xtrain[:s,:])))
+        test_results.append(metric(Ytest, model.predict(Xtest)))
+    
+    return train_results, test_results
+
+
 def make_prediction(estimator, testfile, outfile, predict_method=None, xgb_estimator=False):
     _, ids, X_test, _ = fetch_data(testfile,train=False)
     ids = np.array(ids, dtype=np.int)
