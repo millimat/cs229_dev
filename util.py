@@ -41,10 +41,15 @@ def gini(actual, pred):
 def gini_normalized(actual, pred):
     return gini(actual, pred) / gini(actual, actual)
 
+# Use for regressors that automatically output continuous estimates
 gini_scorer = make_scorer(gini_normalized)
 
+# Use for classifiers that need predict_proba to output decision probabilities
+def gini_proba_scorer(clf, X, y):
+    return gini_normalized(y, clf.predict_proba(X)[:,1])
 
-def learning_curves(model, Xtrain, Xtest, Ytrain, Ytest, nsteps=20, metric=gini_normalized):
+
+def learning_curves(model, Xtrain, Xtest, Ytrain, Ytest, scorer=gini_scorer, nsteps=20):
     train_results = []
     test_results = []
     
@@ -52,9 +57,20 @@ def learning_curves(model, Xtrain, Xtest, Ytrain, Ytest, nsteps=20, metric=gini_
     
     for s in trainsizes:
         print('Evaluating model on training set size {}'.format(s))
-        model.fit(Xtrain[:s,:], Ytrain[:s])
-        train_results.append(metric(Ytrain[:s], model.predict_proba(Xtrain[:s,:])[:,1]))
-        test_results.append(metric(Ytest, model.predict_proba(Xtest)[:,1]))
+        Xtr = Xtrain[:s,:]
+        Ytr = Ytrain[:s]
+        
+        model.fit(Xtr, Ytr)
+        
+        train_results.append(scorer(model, Xtr, Ytr))
+        test_results.append(scorer(model, Xtest, Ytest))
+        
+#        if use_proba:
+#            train_results.append(metric(Ytrain[:s], model.predict_proba(Xtrain[:s,:])[:,1]))
+#            test_results.append(metric(Ytest, model.predict_proba(Xtest)[:,1]))
+#        else:
+#            train_results.append(metric(Ytrain[:s], model.predict(Xtrain[:s,:])))
+#            test_results.append(metric(Ytest, model.predict(Xtest)))
     
     return trainsizes, train_results, test_results
 
