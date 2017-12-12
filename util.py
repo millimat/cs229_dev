@@ -59,7 +59,7 @@ def learning_curves(model, Xtrain, Xtest, Ytrain, Ytest, nsteps=20, metric=gini_
     return trainsizes, train_results, test_results
 
 
-def make_prediction(estimator, testfile, outfile, predict_method=None, xgb_estimator=False):
+def make_prediction(estimator, testfile, outfile, predict_method=None):
     _, ids, X_test, _ = fetch_data(testfile,train=False)
     ids = np.array(ids, dtype=np.int)
     
