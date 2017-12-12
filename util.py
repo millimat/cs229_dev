@@ -51,6 +51,7 @@ def learning_curves(model, Xtrain, Xtest, Ytrain, Ytest, nsteps=20, metric=gini_
     trainsizes = [int(x) for x in np.linspace(0,Xtrain.shape[0], nsteps+1)][1:]
     
     for s in trainsizes:
+        print('Evaluating model on training set size {}'.format(s))
         model.fit(Xtrain[:s,:], Ytrain[:s])
         train_results.append(metric(Ytrain[:s], model.predict(Xtrain[:s,:])))
         test_results.append(metric(Ytest, model.predict(Xtest)))
