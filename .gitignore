@@ -2,7 +2,6 @@
 #*
 *.DS_Store
 *.pyc
-
 *.bz2
 *.7z
 *.buffer
