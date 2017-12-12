@@ -6,3 +6,4 @@
 *.bz2
 *.7z
 *.buffer
+.ipynb_checkpoints/*

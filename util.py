@@ -17,11 +17,13 @@ def fetch_data(datafile, train=True):
             data.append(row)
 
         data = np.array(data, dtype=np.float64)
+            
         # train set has labels in column 1; test does not
         # both models have customer ids in column 0
         ids = np.array(data[:,0], dtype=np.int)
         X = data[:,2:] if train else data[:,1:] 
         Y = data[:,1] if train else None
+            
         return (header, ids, X, Y)
 
 
@@ -42,9 +44,24 @@ def gini_normalized(actual, pred):
 gini_scorer = make_scorer(gini_normalized)
 
 
-def make_prediction(estimator, testfile, outfile, predict_method=None):
+def learning_curves(model, Xtrain, Xtest, Ytrain, Ytest, nsteps=20, metric=gini_normalized):
+    train_results = []
+    test_results = []
+    
+    trainsizes = int(x) for x in np.linspace(0,Xtrain.shape[0], nsteps+1)[1:]
+    
+    for s in trainsizes:
+        model.fit(Xtrain[:s,:], Ytrain[:s])
+        train_results.append(metric(Ytrain[:s], model.predict(Xtrain[:s,:])))
+        test_results.append(metric(Ytest, model.predict(Xtest)))
+    
+    return train_results, test_results
+
+
+def make_prediction(estimator, testfile, outfile, predict_method=None, xgb_estimator=False):
     _, ids, X_test, _ = fetch_data(testfile,train=False)
     ids = np.array(ids, dtype=np.int)
+    
     Y_test = (estimator.predict(X_test) if predict_method == None
               else predict_method(X_test)) # e.g. model.predict_proba(...)[:,1]
 
