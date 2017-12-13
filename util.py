@@ -1,4 +1,5 @@
 import numpy as np
+from pandas import read_csv
 from sklearn.metrics import make_scorer
 from sklearn.preprocessing import Imputer
 import csv
@@ -11,43 +12,37 @@ import csv
 # With impute activated, missing features will be set to the mean of
 # the non-missiing features in that column.
 def fetch_data(datafile, train=True, impute=False, missing=-1):
-    header = None
-    data = []
-
-    with open(datafile) as datacsv:
-        reader = csv.reader(datacsv)
-        header = reader.next()
-        for row in reader:
-            data.append(row)
-
-        data = np.array(data, dtype=np.float64)
-            
-        # train set has labels in column 1; test does not
-        # both models have customer ids in column 0
-        ids = np.array(data[:,0], dtype=np.int)
-        X = data[:,2:] if train else data[:,1:] 
-        Y = data[:,1] if train else None
+    data = read_csv(datafile, dtype=np.float64)
+    header = data.columns.tolist()
+    ids = data['id'].astype(int).tolist()
+    data = data.values
+    
+    # train set has ids in col 0 and labels in col 1
+    # test has ids in col 0 and no labels
+    offset = (2 if train else 1)
+    X = data[:,offset:]
+    Y = data[:,offset-1] if train else None
+    
+    # Replace missing categorical values with mode and missing continuous values with mean.
+    if impute:          
+        imp_categorical = Imputer(missing_values=missing, strategy='most_frequent')
+        imp_continuous = Imputer(missing_values=missing, strategy='mean')
         
-        # Replace missing categorical values with mode and missing continuous values with mean.
-        if impute:          
-            imp_categorical = Imputer(missing_values=missing, strategy='most_frequent')
-            imp_continuous = Imputer(missing_values=missing, strategy='mean')
+        offset = 2 if train else 1 # Start column of data in raw csv
+        
+        cat_cols = []
+        cont_cols = []
+        
+        for (i, feature_name) in enumerate(header[offset:]):
+            if feature_name.endswith('cat') or feature_name.endswith('bin'):
+                cat_cols.append(i)
+            else:
+                cont_cols.append(i)
+         
+        X[:,cat_cols] = imp_categorical.fit_transform(X)[:,cat_cols]
+        X[:,cont_cols]  = imp_continuous.fit_transform(X)[:,cont_cols]            
             
-            offset = 2 if train else 1 # Start column of data in raw csv
-            
-            cat_cols = []
-            cont_cols = []
-            
-            for (i, feature_name) in enumerate(header):
-                if feature_name.endswith('cat') or feature_name.endswith('bin'):
-                    cat_cols.append(i)
-                else:
-                    cont_cols.append(i)
-            
-            X[cat_cols,:] = imp_categorical.fit_transform(X)[cat_cols,:]
-            X[cont_cols,:] = imp_continuous.fit_transform(X)[cont_cols,:]            
-            
-        return (header, ids, X, Y)
+    return (header, ids, X, Y)
 
 
 def gini(actual, pred):
