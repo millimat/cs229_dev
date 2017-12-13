@@ -6,3 +6,5 @@
 *.7z
 *.buffer
 .ipynb_checkpoints/*
+models/svc.pickle
+data/*.csv

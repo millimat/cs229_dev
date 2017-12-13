@@ -1,12 +1,16 @@
 import numpy as np
 from sklearn.metrics import make_scorer
+from sklearn.preprocessing import Imputer
 import csv
 
 # Read data matrix from csv
 # return (header, X, Y), where header[j] = name of feature j,
 # X[i,j] is value of feature j for example i, and Y[i] is target value
 # for feature i.
-def fetch_data(datafile, train=True):
+#
+# With impute activated, missing features will be set to the mean of
+# the non-missiing features in that column.
+def fetch_data(datafile, train=True, impute=False, missing=-1):
     header = None
     data = []
 
@@ -23,6 +27,25 @@ def fetch_data(datafile, train=True):
         ids = np.array(data[:,0], dtype=np.int)
         X = data[:,2:] if train else data[:,1:] 
         Y = data[:,1] if train else None
+        
+        # Replace missing categorical values with mode and missing continuous values with mean.
+        if impute:          
+            imp_categorical = Imputer(missing_values=missing, strategy='most_frequent')
+            imp_continuous = Imputer(missing_values=missing, strategy='mean')
+            
+            offset = 2 if train else 1 # Start column of data in raw csv
+            
+            cat_cols = []
+            cont_cols = []
+            
+            for (i, feature_name) in enumerate(header):
+                if feature_name.endswith('cat') or feature_name.endswith('bin'):
+                    cat_cols.append(i)
+                else:
+                    cont_cols.append(i)
+            
+            X[cat_cols,:] = imp_categorical.fit_transform(X)[cat_cols,:]
+            X[cont_cols,:] = imp_continuous.fit_transform(X)[cont_cols,:]            
             
         return (header, ids, X, Y)
 
@@ -78,7 +101,7 @@ def proba_method(clf):
 
 
 def make_prediction(estimator, testfile, outfile, predict_method=None):
-    _, ids, X_test, _ = fetch_data(testfile,train=False)
+    _, ids, X_test, _ = fetch_data(testfile, train=False, impute=True)
     ids = np.array(ids, dtype=np.int)
     
     Y_test = (estimator.predict(X_test) if predict_method == None
