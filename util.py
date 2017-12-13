@@ -1,7 +1,7 @@
 import numpy as np
 from pandas import read_csv
 from sklearn.metrics import make_scorer
-from sklearn.preprocessing import Imputer
+from sklearn.preprocessing import Imputer, StandardScaler
 import csv
 
 # Read data matrix from csv
@@ -95,9 +95,13 @@ def proba_method(clf):
     return get_proba
 
 
-def make_prediction(estimator, testfile, outfile, predict_method=None):
+def make_prediction(estimator, testfile, outfile, predict_method=None, scale=False):
     _, ids, X_test, _ = fetch_data(testfile, train=False, impute=True)
     ids = np.array(ids, dtype=np.int)
+    
+    if scale == True:
+        scaler = StandardScaler()
+        X_test = scaler.fit_transform(X_test)
     
     Y_test = (estimator.predict(X_test) if predict_method == None
               else predict_method(X_test)) # e.g. model.predict_proba(...)[:,1]
@@ -109,5 +113,3 @@ def make_prediction(estimator, testfile, outfile, predict_method=None):
         out.write('id,target\n')
         for i in range(Y_test_normalized.shape[0]):
             out.write('{},{}\n'.format(ids[i], Y_test_normalized[i]))
-    
-        
