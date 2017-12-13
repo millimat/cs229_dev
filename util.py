@@ -64,15 +64,17 @@ def learning_curves(model, Xtrain, Xtest, Ytrain, Ytest, scorer=gini_scorer, nst
         
         train_results.append(scorer(model, Xtr, Ytr))
         test_results.append(scorer(model, Xtest, Ytest))
-        
-#        if use_proba:
-#            train_results.append(metric(Ytrain[:s], model.predict_proba(Xtrain[:s,:])[:,1]))
-#            test_results.append(metric(Ytest, model.predict_proba(Xtest)[:,1]))
-#        else:
-#            train_results.append(metric(Ytrain[:s], model.predict(Xtrain[:s,:])))
-#            test_results.append(metric(Ytest, model.predict(Xtest)))
     
     return trainsizes, train_results, test_results
+
+
+# Function of a classifier that returns the 1 (positive) column of its predict_proba.
+# proba_method(clf) is a function that is called on a data matrix X to get
+# predicted positive probabilities out of clf.
+def proba_method(clf):
+    def get_proba(X):
+        return clf.predict_proba(X)[:,1]
+    return get_proba
 
 
 def make_prediction(estimator, testfile, outfile, predict_method=None):
