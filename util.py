@@ -95,12 +95,11 @@ def proba_method(clf):
     return get_proba
 
 
-def make_prediction(estimator, testfile, outfile, predict_method=None, scale=False):
+def make_prediction(estimator, testfile, outfile, predict_method=None, scaler=None):
     _, ids, X_test, _ = fetch_data(testfile, train=False, impute=True)
     ids = np.array(ids, dtype=np.int)
     
-    if scale == True:
-        scaler = StandardScaler()
+    if scaler != None:
         X_test = scaler.fit_transform(X_test)
     
     Y_test = (estimator.predict(X_test) if predict_method == None
